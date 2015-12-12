@@ -1,5 +1,7 @@
+from math import *
+
 #Globals
-distanceToHelpBase = 500
+distanceToHelpBase = 400
 
 
 class searchEnemyBase(object):
@@ -8,15 +10,17 @@ class searchEnemyBase(object):
 		WarRocketLauncher.nextState = searchEnemyBase
 		messages = getMessages();
 		for message in messages:
-			if(message.getMessage() == "RocketLaunchersAttack" and False): #Pending to finish
+			if(message.getMessage() == "RocketLaunchersAttack" and False): #Pending to calculate base enemi position
 				WarRocketLauncher.enemyBaseAngle = message.getAngle();
 				arrContent = message.getContent()
 				explorerAngle = float(arrContent[0]);
-				setHeading(WarRocketLauncher.enemyBaseAngle)
-				newAngle = 180 - (WarRocketLauncher.enemyBaseAngle + explorerAngle);##pendiente problema con angulos superiores a 180
-				newAngle = 360 - (WarRocketLauncher.enemyBaseAngle + explorerAngle);##pendiente problema con angulos superiores a 180
+				explorerDistance = float(arrContent[1]);
+
+				RLH = str( WarRocketLauncher.getHeading() );
+				newAngle = 360 - (WarRocketLauncher.enemyBaseAngle + explorerAngle)  ;##pendiente problema con angulos superiores a 180
+				##newAngle = 360 - (WarRocketLauncher.enemyBaseAngle + explorerAngle);##pendiente problema con angulos superiores a 180
 				#newAngle = 10
-				debugStr = "AttackEnemyBase Explorer Angle(" + str(explorerAngle) + ") Base Angle ( " + str(message.getAngle()) + " )" + " newAngle: (" + str(newAngle) + ")" ;
+				debugStr = "AttackEnemyBase EA(" + str(explorerAngle) + ") BA( " + str(message.getAngle()) + " )" + " ED: (" + str(explorerDistance) + ")" + " BD: (" + str(message.getDistance()) + ") RLH: " + RLH;
 				setDebugString(debugStr);
 				setHeading(newAngle)
 				return move();
@@ -34,17 +38,18 @@ class searchEnemyBase(object):
 		return move()
 
 def reflexes():
-	PerceptsEnemiesWarBase = getPerceptsEnemiesWarBase();
-	if PerceptsEnemiesWarBase:
-		broadcastMessageToAll("EnemyBase","")
-		for percept in PerceptsEnemiesWarBase:
-			setHeading(percept.getAngle())
-			if (isReloaded()):
-				return fire()
-				#return move()
-			else :
-				return reloadWeapon()
-				#return move()
+	#PerceptsEnemiesWarBase = getPerceptsEnemiesWarBase();
+	#if PerceptsEnemiesWarBase:
+	#	broadcastMessageToAll("EnemyBase","")
+	#	return idle() #• Idle : l’agent ne bougera plus et ne fera aucune action. 
+	#	for percept in PerceptsEnemiesWarBase:
+	#		setHeading(percept.getAngle())
+	#		if (isReloaded()):
+	#			return fire()
+	#			#return move()
+	#		else :
+	#			return reloadWeapon()
+	#			#return move()
 	if isBlocked():
 		RandomHeading()
 		return None
@@ -57,9 +62,10 @@ class defendOurBase(object):
 		ThereAreEnemiesInOurBase = False
 		messages = getMessages();
 		for message in messages:
-			if(message.getMessage() == "ThereAreEnemiesInOurBase"):
+			if(message.getMessage() == "BaseState" and message.getContent() == "BaseOk"):
 				ThereAreEnemiesInOurBase = True
 				break
+
 
 		if(not ThereAreEnemiesInOurBase ):#JImmy: if there are not enemies in the base he continues
 			WarRocketLauncher.nextState = searchEnemyBase
@@ -93,3 +99,4 @@ WarRocketLauncher.currentState = None
 
 WarRocketLauncher.ourBaseAngle = 0
 WarRocketLauncher.enemyBaseAngle = 0
+#WarRocketLauncher.lastHealth = 10
